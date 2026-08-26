@@ -74,13 +74,18 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
 	if (!window.create(L"我的窗口", 480, 260)) return 1;
 
 	win32::Label label;
-	label.create(window.handle(), L"请输入内容：", 24, 24, 180, 26);
+	label.create(window.handle(), L"请输入内容：");
 
 	win32::TextBox input;
-	input.create(window.handle(), 1002, 24, 56, 280, 32);
+	input.create(window.handle(), 1002);
 
 	win32::Button button;
-	button.create(window.handle(), L"确定", kButton, 320, 56, 110, 32);
+	button.create(window.handle(), L"确定", kButton);
+
+	win32::Grid grid(window.handle(), 2, 280, 32, 24, 12);
+	grid.add(label, win32::Grid::Row{0}, win32::Grid::Column{0});
+	grid.add(input, win32::Grid::Row{1}, win32::Grid::Column{0});
+	grid.add(button, win32::Grid::Row{1}, win32::Grid::Column{1}, 110, 32);
 
 	window.on_message([&](HWND hwnd, UINT message, WPARAM w_param, LPARAM l_param) -> LRESULT {
 		if (message == WM_COMMAND && LOWORD(w_param) == kButton && HIWORD(w_param) == BN_CLICKED) {
@@ -102,7 +107,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
 
 1. 包含 `win32.h`。
 2. 创建 `win32::Window`，调用 `create` 创建窗口。
-3. 创建控件，并把 `window.handle()` 作为父窗口句柄传入。
+3. 创建控件，并把 `window.handle()` 作为父窗口句柄传入；布局示例统一使用 `Grid::Row` 和 `Grid::Column`。
 4. 为按钮、复选框、下拉框等控件分配不重复的整数 ID。
 5. 使用 `window.on_message` 处理控件通知消息。
 6. 最后调用 `window.run()` 启动消息循环。
@@ -130,28 +135,36 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
 
 ```cpp
 win32::ComboBox mode;
-mode.create(window.handle(), 2001, 24, 110, 180, 140);
+mode.create(window.handle(), 2001);
 mode.add(L"十进制");
 mode.add(L"十六进制");
 mode.select(0);
 
 win32::CheckBox option;
-option.create(window.handle(), L"启用高级模式", 2002, 24, 160);
+option.create(window.handle(), L"启用高级模式", 2002);
 option.set_checked(true);
+
+win32::Grid grid(window.handle(), 2, 180, 32, 24, 12);
+grid.add(mode, win32::Grid::Row{0}, win32::Grid::Column{0}, 180, 140);
+grid.add(option, win32::Grid::Row{1}, win32::Grid::Column{0}, 180, 26);
 ```
 
 ### 数值和状态控件
 
 ```cpp
 win32::Slider slider;
-slider.create(window.handle(), 3001, 24, 210, 240, 30);
+slider.create(window.handle(), 3001);
 slider.range(0, 100);
 slider.value(60);
 
 win32::ProgressBar progress;
-progress.create(window.handle(), 3002, 24, 250, 240, 20);
+progress.create(window.handle(), 3002);
 progress.range(0, 100);
 progress.value(60);
+
+win32::Grid grid(window.handle(), 1, 240, 30, 24, 8);
+grid.add(slider, win32::Grid::Row{0}, win32::Grid::Column{0}, 240, 30);
+grid.add(progress, win32::Grid::Row{1}, win32::Grid::Column{0}, 240, 20);
 ```
 
 拖动 `Slider` 时，窗口会收到 `WM_HSCROLL`；可以通过 `slider.value()` 读取当前值。
@@ -183,10 +196,13 @@ progress.value(60);
 
 ```cpp
 win32::TreeView tree;
-tree.create(window.handle(), 4001, 280, 110, 180, 150);
+tree.create(window.handle(), 4001);
 HTREEITEM root = tree.add_root(L"项目");
 tree.add(L"源代码", root);
 tree.add(L"资源文件", root);
+
+win32::Grid grid(window.handle(), 1, 180, 150, 24, 8);
+grid.add(tree, win32::Grid::Row{0}, win32::Grid::Column{0}, 180, 150);
 ```
 
 状态栏示例：
@@ -357,7 +373,7 @@ RECT screen_rect = control.bounds();
 RECT client_rect = control.client_bounds();
 ```
 
-`create` 中的坐标是父窗口客户区坐标，左上角是 `(0, 0)`。`bounds()` 返回屏幕坐标；如果需要在父窗口内重新布局，应优先使用 `set_bounds` 或 `Layout` 工具。
+控件的 `create` 接口仍保留坐标参数以兼容 Win32，但使用时可以传入 `0, 0`，再交给 `Grid` 统一布局。`bounds()` 返回屏幕坐标。
 
 ## Window API
 
@@ -393,50 +409,28 @@ if (message == WM_DESTROY) {
 `Layout` 不依赖 XAML，也不提供自动响应式布局，但可以减少手动计算坐标：
 
 ```cpp
-win32::Layout::center(button, window.handle());
-win32::Layout::right(search, window.handle(), 24);
-win32::Layout::bottom(status, window.handle(), 0);
-win32::Layout::fill(panel, window.handle(), 16);
-```
-
-如果希望控件按加入顺序逐行或逐列排列，只需在创建控件时先使用 `0, 0`，再通过 `Row` 或 `Column` 设置一次起始位置：
-
-```cpp
-win32::Layout::Column column(window.handle(), 24, 10, 360);
-column.add(title, 32);
-column.add(input, 32);
-
-auto row = column.row(12);
-row.add(ok_button, 120, 32);
-row.add(cancel_button, 120, 32);
-row.finish();
-```
-
-`Column::add` 会从上到下排列，`column.row()` 会自动创建下一行，`Row::add` 会从左到右排列。每行排列完成后调用 `finish()`，让下一行自动接在后面。`add` 中的尺寸参数可省略，此时使用控件创建时的宽高。
-
-需要像 WinUI 3 的 `Grid.Row` 和 `Grid.Column` 一样按网格定位时，可以使用 `Grid`。C++ 中使用 `Grid::Row(行号)` 和 `Grid::Column(列号)` 表示附加属性：
-
-```cpp
 win32::Grid grid(window.handle(), 2, 180, 32, 24, 12);
 grid.add(label, win32::Grid::Row{0}, win32::Grid::Column{0});
-grid.add(input, win32::Grid::Row{0}, win32::Grid::Column{1});
+grid.add(input, win32::Grid::Row{1}, win32::Grid::Column{0});
 grid.add(button, win32::Grid::Row{1}, win32::Grid::Column{1});
 ```
 
-网格会根据父窗口、边距、单元格尺寸和间距自动计算控件位置，不需要传入 `x, y`。
-
-批量排列控件：
+控件创建时先使用 `0, 0`，再通过 `Grid::Row` 和 `Grid::Column` 指定网格位置：
 
 ```cpp
-std::vector<win32::Control*> items{&first, &second, &third};
-win32::Layout::stack_vertical(items, 24, 24, 10, 280, 32);
+title.create(window.handle(), L"标题");
+input.create(window.handle(), 1001);
+ok_button.create(window.handle(), L"确定", 1002);
+cancel_button.create(window.handle(), L"取消", 1003);
+
+win32::Grid grid(window.handle(), 2, 180, 32, 24, 12);
+grid.add(title, win32::Grid::Row{0}, win32::Grid::Column{0});
+grid.add(input, win32::Grid::Row{1}, win32::Grid::Column{0}, 280, 32);
+grid.add(ok_button, win32::Grid::Row{1}, win32::Grid::Column{1}, 120, 32);
+grid.add(cancel_button, win32::Grid::Row{2}, win32::Grid::Column{1}, 120, 32);
 ```
 
-水平排列使用：
-
-```cpp
-win32::Layout::stack_horizontal(items, 24, 24, 12, 120, 32);
-```
+网格会根据父窗口、边距、单元格尺寸和间距自动计算控件位置，不需要传入 `x, y`。`Grid::Row{0}` 和 `Grid::Column{0}` 就是类似 WinUI 3 中 `Grid.Row="0"` 和 `Grid.Column="0"` 的 C++ 写法。
 
 布局工具不会自动监听窗口大小变化。如果窗口需要跟随缩放，请在 `WM_SIZE` 中重新调用布局方法。
 
@@ -446,31 +440,37 @@ win32::Layout::stack_horizontal(items, 24, 24, 12, 120, 32);
 
 ```cpp
 win32::ListView table;
-table.create(window.handle(), 5001, 20, 20, 420, 180);
+table.create(window.handle(), 5001);
 table.add_column(L"名称", 180, 0);
 table.add_column(L"状态", 120, 1);
 table.add_column(L"数量", 80, 2);
 int row = table.add_row(L"项目 A");
 table.set_cell(row, 1, L"正常");
 table.set_cell(row, 2, L"12");
+
+win32::Grid grid(window.handle(), 1, 420, 180, 20, 8);
+grid.add(table, win32::Grid::Row{0}, win32::Grid::Column{0}, 420, 180);
 ```
 
 ### 树形视图
 
 ```cpp
 win32::TreeView tree;
-tree.create(window.handle(), 5002, 20, 220, 260, 180);
+tree.create(window.handle(), 5002);
 HTREEITEM root = tree.add_root(L"工作区");
 HTREEITEM source = tree.add(L"源代码", root);
 tree.add(L"main.cpp", source);
 tree.add(L"win32.h", source);
+
+win32::Grid grid(window.handle(), 1, 260, 180, 20, 8);
+grid.add(tree, win32::Grid::Row{0}, win32::Grid::Column{0}, 260, 180);
 ```
 
 ### 日期和月历
 
 ```cpp
 win32::DateTimePicker date;
-date.create(window.handle(), 5003, 300, 220);
+date.create(window.handle(), 5003);
 
 SYSTEMTIME today{};
 if (date.get(today)) {
@@ -478,18 +478,26 @@ if (date.get(today)) {
 }
 
 win32::MonthCalendar calendar;
-calendar.create(window.handle(), 5004, 300, 260, 240, 180);
+calendar.create(window.handle(), 5004);
+
+win32::Grid grid(window.handle(), 2, 240, 180, 20, 8);
+grid.add(date, win32::Grid::Row{0}, win32::Grid::Column{0}, 240, 30);
+grid.add(calendar, win32::Grid::Row{1}, win32::Grid::Column{0}, 240, 180);
 ```
 
 ### 富文本和搜索框
 
 ```cpp
 win32::RichEdit editor;
-editor.create(window.handle(), 5005, 20, 420, 420, 120);
+editor.create(window.handle(), 5005);
 editor.set_text(L"支持多行文本。\r\n");
 
 win32::SearchBox search;
-search.create(window.handle(), 5006, 20, 560, 260, 32, L"搜索文件");
+search.create(window.handle(), 5006, L"搜索文件");
+
+win32::Grid grid(window.handle(), 1, 420, 120, 20, 8);
+grid.add(editor, win32::Grid::Row{0}, win32::Grid::Column{0}, 420, 120);
+grid.add(search, win32::Grid::Row{1}, win32::Grid::Column{0}, 260, 32);
 ```
 
 ### 工具栏和状态栏
@@ -626,15 +634,20 @@ Mica 是 Windows 11 的系统效果，是否可见还受以下因素影响：
 ```cpp
 class MyControl : public win32::Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width, int height) {
+	bool create(HWND parent, int id, int width, int height) {
 		handle_ = CreateWindowW(L"STATIC", L"", WS_CHILD | WS_VISIBLE,
-								x, y, width, height, parent,
+								0, 0, width, height, parent,
 								reinterpret_cast<HMENU>(id),
 								GetModuleHandleW(nullptr), nullptr);
 		win32::Theme::apply(handle_);
 		return valid();
 	}
 };
+
+MyControl control;
+control.create(window.handle(), 6001, 240, 32);
+win32::Grid grid(window.handle(), 1, 240, 32);
+grid.add(control, win32::Grid::Row{0}, win32::Grid::Column{0}, 240, 32);
 ```
 
 ## 当前实现的边界
