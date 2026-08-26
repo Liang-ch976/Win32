@@ -300,6 +300,10 @@ private:
 
 class Button : public Control {
 public:
+	bool create(HWND parent, const std::wstring& title, int id) {
+		return create(parent, title, id, 0, 0);
+	}
+
 	bool create(HWND parent, const std::wstring& title, int id, int x, int y,
 				int width = 100, int height = 30, DWORD style = BS_PUSHBUTTON) {
 		handle_ = CreateWindowW(L"BUTTON", title.c_str(), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW | style,
@@ -312,6 +316,10 @@ public:
 
 class Static : public Control {
 public:
+	bool create(HWND parent, const std::wstring& text) {
+		return create(parent, text, 0, 0);
+	}
+
 	bool create(HWND parent, const std::wstring& text, int x, int y,
 				int width = 180, int height = 24) {
 		handle_ = CreateWindowW(L"STATIC", text.c_str(), WS_CHILD | WS_VISIBLE,
@@ -325,6 +333,10 @@ using Label = Static;
 
 class Edit : public Control {
 public:
+	bool create(HWND parent, int id) {
+		return create(parent, id, 0, 0);
+	}
+
 	bool create(HWND parent, int id, int x, int y, int width = 220, int height = 26,
 				bool multiline = false) {
 		DWORD style = WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL;
@@ -340,6 +352,10 @@ using TextBox = Edit;
 
 class SearchBox : public Edit {
 public:
+	bool create(HWND parent, int id, const std::wstring& placeholder) {
+		return create(parent, id, 0, 0, 260, 32, placeholder);
+	}
+
 	bool create(HWND parent, int id, int x, int y, int width = 260, int height = 32,
 				const std::wstring& placeholder = L"搜索") {
 		if (!Edit::create(parent, id, x, y, width, height, false)) return false;
@@ -362,6 +378,10 @@ public:
 
 class CheckBox : public Control {
 public:
+	bool create(HWND parent, const std::wstring& title, int id) {
+		return create(parent, title, id, 0, 0);
+	}
+
 	bool create(HWND parent, const std::wstring& title, int id, int x, int y,
 				int width = 160, int height = 26) {
 		handle_ = CreateWindowW(L"BUTTON", title.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
@@ -376,6 +396,10 @@ public:
 
 class ComboBox : public Control {
 public:
+	bool create(HWND parent, int id) {
+		return create(parent, id, 0, 0);
+	}
+
 	bool create(HWND parent, int id, int x, int y, int width = 220, int height = 150) {
 		handle_ = CreateWindowW(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | CBS_DROPDOWNLIST,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
@@ -390,7 +414,7 @@ public:
 
 class GroupBox : public Control {
 public:
-	bool create(HWND parent, const std::wstring& title, int x, int y,
+	bool create(HWND parent, const std::wstring& title, int x = 0, int y = 0,
 				int width = 260, int height = 120) {
 		handle_ = CreateWindowW(L"BUTTON", title.c_str(), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
 								x, y, width, height, parent, nullptr,
@@ -402,7 +426,7 @@ public:
 
 class RadioButton : public Control {
 public:
-	bool create(HWND parent, const std::wstring& title, int id, int x, int y,
+	bool create(HWND parent, const std::wstring& title, int id, int x = 0, int y = 0,
 				int width = 160, int height = 26, bool auto_check = true) {
 		const DWORD check_style = auto_check ? BS_AUTORADIOBUTTON : BS_RADIOBUTTON;
 		handle_ = CreateWindowW(L"BUTTON", title.c_str(), WS_CHILD | WS_VISIBLE | check_style,
@@ -417,7 +441,7 @@ public:
 
 class ListBox : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 220, int height = 120) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 220, int height = 120) {
 		handle_ = CreateWindowExW(WS_EX_CLIENTEDGE, L"LISTBOX", L"",
 								  WS_CHILD | WS_VISIBLE | LBS_NOTIFY | WS_VSCROLL,
 								  x, y, width, height, parent, reinterpret_cast<HMENU>(id),
@@ -433,7 +457,7 @@ public:
 
 class ListView : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 320, int height = 180) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 320, int height = 180) {
 		handle_ = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, L"",
 								 WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS,
 								 x, y, width, height, parent, reinterpret_cast<HMENU>(id),
@@ -464,6 +488,10 @@ public:
 
 class InfoBar : public Static {
 public:
+	bool create(HWND parent, const std::wstring& message) {
+		return create(parent, message, 0, 0);
+	}
+
 	bool create(HWND parent, const std::wstring& message, int x, int y,
 				int width = 420, int height = 32) {
 		if (!Static::create(parent, message, x, y, width, height)) return false;
@@ -474,7 +502,7 @@ public:
 
 class ColorButton : public Button {
 public:
-	bool create(HWND parent, const std::wstring& title, int id, int x, int y,
+	bool create(HWND parent, const std::wstring& title, int id, int x = 0, int y = 0,
 				int width = 110, int height = 32) {
 		return Button::create(parent, title, id, x, y, width, height);
 	}
@@ -482,7 +510,7 @@ public:
 
 class ProgressBar : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 220, int height = 20) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 220, int height = 20) {
 		handle_ = CreateWindowW(PROGRESS_CLASSW, L"", WS_CHILD | WS_VISIBLE,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
 								GetModuleHandleW(nullptr), nullptr);
@@ -496,6 +524,10 @@ public:
 
 class Slider : public Control {
 public:
+	bool create(HWND parent, int id) {
+		return create(parent, id, 0, 0);
+	}
+
 	bool create(HWND parent, int id, int x, int y, int width = 220, int height = 30) {
 		handle_ = CreateWindowW(TRACKBAR_CLASSW, L"", WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
@@ -510,7 +542,7 @@ public:
 
 class TabView : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 300, int height = 200) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 300, int height = 200) {
 		handle_ = CreateWindowW(WC_TABCONTROLW, L"", WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
 								GetModuleHandleW(nullptr), nullptr);
@@ -526,7 +558,7 @@ public:
 
 class Separator : public Static {
 public:
-	bool create(HWND parent, int x, int y, int width = 300, int height = 1) {
+	bool create(HWND parent, int x = 0, int y = 0, int width = 300, int height = 1) {
 		handle_ = CreateWindowW(L"STATIC", L"", WS_CHILD | WS_VISIBLE | SS_ETCHEDHORZ,
 								x, y, width, height, parent, nullptr,
 								GetModuleHandleW(nullptr), nullptr);
@@ -536,7 +568,7 @@ public:
 
 class DateTimePicker : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 150, int height = 26) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 150, int height = 26) {
 		handle_ = CreateWindowW(DATETIMEPICK_CLASSW, L"", WS_CHILD | WS_VISIBLE | DTS_SHORTDATEFORMAT,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
 								GetModuleHandleW(nullptr), nullptr);
@@ -549,7 +581,7 @@ public:
 
 class MonthCalendar : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 240, int height = 180) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 240, int height = 180) {
 		handle_ = CreateWindowW(MONTHCAL_CLASSW, L"", WS_CHILD | WS_VISIBLE,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
 								GetModuleHandleW(nullptr), nullptr);
@@ -560,7 +592,7 @@ public:
 
 class TreeView : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 240, int height = 180) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 240, int height = 180) {
 		handle_ = CreateWindowExW(WS_EX_CLIENTEDGE, WC_TREEVIEWW, L"",
 								  WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS,
 								  x, y, width, height, parent, reinterpret_cast<HMENU>(id),
@@ -581,7 +613,7 @@ public:
 
 class RichEdit : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 300, int height = 160,
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 300, int height = 160,
 				bool read_only = false) {
 		LoadLibraryW(L"Msftedit.dll");
 		DWORD style = WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL;
@@ -614,7 +646,7 @@ public:
 
 class UpDown : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 24, int height = 26) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 24, int height = 26) {
 		handle_ = CreateWindowW(UPDOWN_CLASSW, L"", WS_CHILD | WS_VISIBLE | UDS_SETBUDDYINT | UDS_ARROWKEYS,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
 								GetModuleHandleW(nullptr), nullptr);
@@ -668,7 +700,7 @@ public:
 
 class ScrollBar : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 220, int height = 18,
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 220, int height = 18,
 				bool vertical = false) {
 			const DWORD direction = vertical ? SBS_VERT : SBS_HORZ;
 			handle_ = CreateWindowW(L"SCROLLBAR", L"", WS_CHILD | WS_VISIBLE | direction,
@@ -690,7 +722,7 @@ public:
 
 class HotKeyBox : public Control {
 public:
-	bool create(HWND parent, int id, int x, int y, int width = 180, int height = 28) {
+	bool create(HWND parent, int id, int x = 0, int y = 0, int width = 180, int height = 28) {
 		handle_ = CreateWindowW(HOTKEY_CLASSW, L"", WS_CHILD | WS_VISIBLE | WS_BORDER,
 								x, y, width, height, parent, reinterpret_cast<HMENU>(id),
 								GetModuleHandleW(nullptr), nullptr);
